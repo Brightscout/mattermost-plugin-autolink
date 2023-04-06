@@ -49,16 +49,10 @@ func (c *Client) Add(links ...autolink.Autolink) error {
 			return err
 		}
 
-		req, err := http.NewRequest(http.MethodPost, "/"+autolinkPluginID+"/api/v1/link", bytes.NewReader(linkBytes))
+		resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", linkBytes, nil)
 		if err != nil {
 			return err
 		}
-
-		resp, err := c.Do(req)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			respBody, _ := ioutil.ReadAll(resp.Body)
@@ -75,18 +69,10 @@ func (c *Client) Delete(links ...string) error {
 			AutolinkNameQueryParam: {link},
 		}
 
-		req, err := http.NewRequest(http.MethodDelete, "/"+autolinkPluginID+"/api/v1/link", nil)
+		resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", nil, queryParams)
 		if err != nil {
 			return err
 		}
-
-		req.URL.RawQuery = queryParams.Encode()
-
-		resp, err := c.Do(req)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			respBody, _ := ioutil.ReadAll(resp.Body)
@@ -102,18 +88,10 @@ func (c *Client) Get(autolinkName string) ([]autolink.Autolink, error) {
 		AutolinkNameQueryParam: {autolinkName},
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "/"+autolinkPluginID+"/api/v1/link", nil)
+	resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", nil, queryParams)
 	if err != nil {
 		return nil, err
 	}
-
-	req.URL.RawQuery = queryParams.Encode()
-
-	resp, err := c.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -130,4 +108,21 @@ func (c *Client) Get(autolinkName string) ([]autolink.Autolink, error) {
 	}
 
 	return response, nil
+}
+
+func (c *Client) call(url string, body []byte, queryParams url.Values) (*http.Response, error) {
+	req, err := http.NewRequest(http.MethodGet, url, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+
+	req.URL.RawQuery = queryParams.Encode()
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return resp, nil
 }

@@ -36,7 +36,7 @@ func NewHandler(store Store, authorization Authorization) *Handler {
 	api := root.PathPrefix("/api/v1").Subrouter()
 	api.Use(h.adminOrPluginRequired)
 	link := api.PathPrefix("/link").Subrouter()
-	link.HandleFunc("", h.setLink).Methods("POST")
+	link.HandleFunc("", h.setLink).Methods(http.MethodPost)
 	link.HandleFunc("", h.deleteLink).Methods(http.MethodDelete)
 	link.HandleFunc("", h.getLinks).Methods(http.MethodGet)
 
