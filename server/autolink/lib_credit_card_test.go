@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-plugin-autolink/server/autolink"
+	"github.com/brightscout/mattermost-plugin-autolink/server/autolink"
 )
 
 const (

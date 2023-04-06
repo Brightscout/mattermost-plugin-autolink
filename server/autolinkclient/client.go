@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/mattermost/mattermost-plugin-autolink/server/autolink"
+	"github.com/brightscout/mattermost-plugin-autolink/server/autolink"
 )
 
 const (

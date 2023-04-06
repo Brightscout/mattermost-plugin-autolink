@@ -9,7 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-plugin-autolink/server/autolink"
+	"github.com/brightscout/mattermost-plugin-autolink/server/autolink"
 )
 
 // Config from config.json

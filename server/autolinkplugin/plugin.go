@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/shared/markdown"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-plugin-autolink/server/api"
+	"github.com/brightscout/mattermost-plugin-autolink/server/api"
 )
 
 // Plugin the main struct for everything

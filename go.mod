@@ -1,4 +1,4 @@
-module github.com/mattermost/mattermost-plugin-autolink
+module github.com/brightscout/mattermost-plugin-autolink
 
 go 1.12
 
