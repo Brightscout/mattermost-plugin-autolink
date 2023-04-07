@@ -49,7 +49,7 @@ func (c *Client) Add(links ...autolink.Autolink) error {
 			return err
 		}
 
-		resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", linkBytes, nil)
+		resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", http.MethodPost, linkBytes, nil)
 		if err != nil {
 			return err
 		}
@@ -69,7 +69,7 @@ func (c *Client) Delete(links ...string) error {
 			AutolinkNameQueryParam: {link},
 		}
 
-		resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", nil, queryParams)
+		resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", http.MethodDelete, nil, queryParams)
 		if err != nil {
 			return err
 		}
@@ -88,7 +88,7 @@ func (c *Client) Get(autolinkName string) ([]autolink.Autolink, error) {
 		AutolinkNameQueryParam: {autolinkName},
 	}
 
-	resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", nil, queryParams)
+	resp, err := c.call("/"+autolinkPluginID+"/api/v1/link", http.MethodGet, nil, queryParams)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +110,8 @@ func (c *Client) Get(autolinkName string) ([]autolink.Autolink, error) {
 	return response, nil
 }
 
-func (c *Client) call(url string, body []byte, queryParams url.Values) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodGet, url, bytes.NewReader(body))
+func (c *Client) call(url, method string, body []byte, queryParams url.Values) (*http.Response, error) {
+	req, err := http.NewRequest(method, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
