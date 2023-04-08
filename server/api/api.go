@@ -118,15 +118,13 @@ func (h *Handler) setLink(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNotModified
 	if changed {
 		if err := h.store.SaveLinks(links); err != nil {
-			h.handleError(w, errors.Wrap(err, "unable to save link"))
+			h.handleError(w, errors.Wrap(err, "unable to save the link"))
 			return
 		}
 		status = http.StatusOK
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_, _ = w.Write([]byte(`{"status": "OK"}`))
+	ReturnStatusOK(status, w)
 }
 
 func (h *Handler) deleteLink(w http.ResponseWriter, r *http.Request) {
@@ -148,15 +146,13 @@ func (h *Handler) deleteLink(w http.ResponseWriter, r *http.Request) {
 	status := http.StatusNotModified
 	if found {
 		if err := h.store.SaveLinks(links); err != nil {
-			h.handleError(w, errors.Wrap(err, "unable to save link"))
+			h.handleError(w, errors.Wrap(err, "unable to save the link"))
 			return
 		}
 		status = http.StatusOK
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_, _ = w.Write([]byte(`{"status": "OK"}`))
+	ReturnStatusOK(status, w)
 }
 
 func (h *Handler) getLinks(w http.ResponseWriter, r *http.Request) {
@@ -170,15 +166,15 @@ func (h *Handler) getLinks(w http.ResponseWriter, r *http.Request) {
 
 	found := false
 	var autolinks []autolink.Autolink
-	for i := range links {
-		if links[i].Name == autolinkName || links[i].Pattern == autolinkName {
-			autolinks = append(autolinks, links[i])
+	for _, link := range links {
+		if link.Name == autolinkName || link.Pattern == autolinkName {
+			autolinks = append(autolinks, link)
 			found = true
 		}
 	}
 
 	if !found {
-		h.handleError(w, errors.Errorf("no auto link found with name or pattern %s", autolinkName))
+		h.handleError(w, errors.Errorf("no autolink found with name or pattern %s", autolinkName))
 		return
 	}
 
@@ -198,4 +194,10 @@ func (h *Handler) handleSendingJSONContent(w http.ResponseWriter, v interface{})
 		h.handleError(w, errors.Wrap(err, "failed to write JSON response"))
 		return
 	}
+}
+
+func ReturnStatusOK(status int, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_, _ = w.Write([]byte(`{"status": "OK"}`))
 }

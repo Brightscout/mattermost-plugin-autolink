@@ -83,7 +83,7 @@ func (c *Client) Delete(links ...string) error {
 	return nil
 }
 
-func (c *Client) Get(autolinkName string) ([]autolink.Autolink, error) {
+func (c *Client) Get(autolinkName string) ([]*autolink.Autolink, error) {
 	queryParams := url.Values{
 		AutolinkNameQueryParam: {autolinkName},
 	}
@@ -102,7 +102,7 @@ func (c *Client) Get(autolinkName string) ([]autolink.Autolink, error) {
 		return nil, fmt.Errorf("unable to install autolink. Error: %v, %v", resp.StatusCode, string(respBody))
 	}
 
-	var response []autolink.Autolink
+	var response []*autolink.Autolink
 	if err = json.Unmarshal(respBody, &response); err != nil {
 		return nil, err
 	}
