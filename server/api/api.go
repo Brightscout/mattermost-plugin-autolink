@@ -165,7 +165,7 @@ func (h *Handler) getLinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var autolink *autolink.Autolink = nil
+	var autolink *autolink.Autolink
 	for _, link := range links {
 		if link.Name == autolinkName {
 			autolink = &link
