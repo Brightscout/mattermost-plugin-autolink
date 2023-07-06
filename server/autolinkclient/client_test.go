@@ -1,7 +1,9 @@
 package autolinkclient
 
 import (
+	"io/ioutil"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
@@ -51,5 +53,47 @@ func TestAddAutolinksErr(t *testing.T) {
 
 	client := NewClientPlugin(mockPluginAPI)
 	err := client.Add(autolink.Autolink{})
+	require.Error(t, err)
+}
+
+func TestDeleteAutolinks(t *testing.T) {
+	mockPluginAPI := &plugintest.API{}
+
+	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: http.NoBody})
+
+	client := NewClientPlugin(mockPluginAPI)
+	err := client.Delete("")
+	require.Nil(t, err)
+}
+
+func TestDeleteAutolinksErr(t *testing.T) {
+	mockPluginAPI := &plugintest.API{}
+
+	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
+
+	client := NewClientPlugin(mockPluginAPI)
+	err := client.Delete("")
+	require.Error(t, err)
+}
+
+func TestGetAutolinks(t *testing.T) {
+	mockPluginAPI := &plugintest.API{}
+
+	r := ioutil.NopCloser(strings.NewReader("{}"))
+
+	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: r})
+
+	client := NewClientPlugin(mockPluginAPI)
+	_, err := client.Get("")
+	require.Nil(t, err)
+}
+
+func TestGetAutolinksErr(t *testing.T) {
+	mockPluginAPI := &plugintest.API{}
+
+	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
+
+	client := NewClientPlugin(mockPluginAPI)
+	_, err := client.Get("")
 	require.Error(t, err)
 }

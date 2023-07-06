@@ -3,6 +3,8 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -165,6 +167,123 @@ func TestSetLink(t *testing.T) {
 			require.Equal(t, tc.expectStatus, w.Code)
 			require.Equal(t, tc.expectSaveCalled, saveCalled)
 			require.Equal(t, tc.expectSaved, saved)
+		})
+	}
+}
+
+func TestGetLink(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		prevLinks    []autolink.Autolink
+		autoLinkName string
+		expectStatus int
+		expectReturn string
+	}{
+		{
+			name:         "get the autolink",
+			autoLinkName: "test",
+			prevLinks: []autolink.Autolink{{
+				Name:     "test",
+				Pattern:  ".*1",
+				Template: "test",
+			}},
+			expectStatus: http.StatusOK,
+			expectReturn: `{"Name":"test","Disabled":false,"Pattern":".*1","Template":"test","Scope":null,"WordMatch":false,"DisableNonWordPrefix":false,"DisableNonWordSuffix":false,"ProcessBotPosts":false}`,
+		},
+		{
+			name:         "not found",
+			autoLinkName: "test",
+			prevLinks: []autolink.Autolink{{
+				Name:     "test1",
+				Pattern:  ".*1",
+				Template: "test",
+			}},
+			expectStatus: http.StatusInternalServerError,
+			expectReturn: "{\"error\":\"An internal error has occurred. Check app server logs for details.\",\"details\":\"no autolink found with name test\"}",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var saved []autolink.Autolink
+			var saveCalled bool
+
+			h := NewHandler(
+				&linkStore{
+					prev:       tc.prevLinks,
+					saveCalled: &saveCalled,
+					saved:      &saved,
+				},
+				authorizeAll{},
+			)
+
+			w := httptest.NewRecorder()
+			r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/link?autolinkName=%s", tc.autoLinkName), nil)
+			require.NoError(t, err)
+
+			r.Header.Set("Mattermost-Plugin-ID", "testfrom")
+			r.Header.Set("Mattermost-User-ID", "testuser")
+
+			h.ServeHTTP(w, r)
+
+			respBody, err := ioutil.ReadAll(w.Body)
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expectStatus, w.Code)
+			require.Equal(t, tc.expectReturn, string(respBody))
+		})
+	}
+}
+
+func TestDeleteLink(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		prevLinks    []autolink.Autolink
+		autoLinkName string
+		expectStatus int
+	}{
+		{
+			name:         "delete the autolink",
+			autoLinkName: "test",
+			prevLinks: []autolink.Autolink{{
+				Name:     "test",
+				Pattern:  ".*1",
+				Template: "test",
+			}},
+			expectStatus: http.StatusOK,
+		},
+		{
+			name:         "not found",
+			autoLinkName: "test",
+			prevLinks: []autolink.Autolink{{
+				Name:     "test1",
+				Pattern:  ".*1",
+				Template: "test",
+			}},
+			expectStatus: http.StatusNotModified,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var saved []autolink.Autolink
+			var saveCalled bool
+
+			h := NewHandler(
+				&linkStore{
+					prev:       tc.prevLinks,
+					saveCalled: &saveCalled,
+					saved:      &saved,
+				},
+				authorizeAll{},
+			)
+
+			w := httptest.NewRecorder()
+			r, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/link?autolinkName=%s", tc.autoLinkName), nil)
+			require.NoError(t, err)
+
+			r.Header.Set("Mattermost-Plugin-ID", "testfrom")
+			r.Header.Set("Mattermost-User-ID", "testuser")
+
+			h.ServeHTTP(w, r)
+
+			require.Equal(t, tc.expectStatus, w.Code)
 		})
 	}
 }
