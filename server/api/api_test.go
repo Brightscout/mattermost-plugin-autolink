@@ -172,32 +172,25 @@ func TestSetLink(t *testing.T) {
 }
 
 func TestGetLink(t *testing.T) {
+	autoLinkName := "test"
+	prevLinks := []autolink.Autolink{{
+		Name:     "test",
+		Pattern:  ".*1",
+		Template: "test",
+	}}
+
 	for _, tc := range []struct {
 		name         string
-		prevLinks    []autolink.Autolink
-		autoLinkName string
 		expectStatus int
 		expectReturn string
 	}{
 		{
 			name:         "get the autolink",
-			autoLinkName: "test",
-			prevLinks: []autolink.Autolink{{
-				Name:     "test",
-				Pattern:  ".*1",
-				Template: "test",
-			}},
 			expectStatus: http.StatusOK,
 			expectReturn: `{"Name":"test","Disabled":false,"Pattern":".*1","Template":"test","Scope":null,"WordMatch":false,"DisableNonWordPrefix":false,"DisableNonWordSuffix":false,"ProcessBotPosts":false}`,
 		},
 		{
 			name:         "not found",
-			autoLinkName: "test",
-			prevLinks: []autolink.Autolink{{
-				Name:     "test1",
-				Pattern:  ".*1",
-				Template: "test",
-			}},
 			expectStatus: http.StatusInternalServerError,
 			expectReturn: "{\"error\":\"An internal error has occurred. Check app server logs for details.\",\"details\":\"no autolink found with name test\"}",
 		},
@@ -208,7 +201,7 @@ func TestGetLink(t *testing.T) {
 
 			h := NewHandler(
 				&linkStore{
-					prev:       tc.prevLinks,
+					prev:       prevLinks,
 					saveCalled: &saveCalled,
 					saved:      &saved,
 				},
@@ -216,7 +209,7 @@ func TestGetLink(t *testing.T) {
 			)
 
 			w := httptest.NewRecorder()
-			r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/link?autolinkName=%s", tc.autoLinkName), nil)
+			r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/link?autolinkName=%s", autoLinkName), nil)
 			require.NoError(t, err)
 
 			r.Header.Set("Mattermost-Plugin-ID", "testfrom")
@@ -234,15 +227,14 @@ func TestGetLink(t *testing.T) {
 }
 
 func TestDeleteLink(t *testing.T) {
+	autoLinkName := "test"
 	for _, tc := range []struct {
 		name         string
 		prevLinks    []autolink.Autolink
-		autoLinkName string
 		expectStatus int
 	}{
 		{
-			name:         "delete the autolink",
-			autoLinkName: "test",
+			name: "delete the autolink",
 			prevLinks: []autolink.Autolink{{
 				Name:     "test",
 				Pattern:  ".*1",
@@ -251,8 +243,7 @@ func TestDeleteLink(t *testing.T) {
 			expectStatus: http.StatusOK,
 		},
 		{
-			name:         "not found",
-			autoLinkName: "test",
+			name: "not found",
 			prevLinks: []autolink.Autolink{{
 				Name:     "test1",
 				Pattern:  ".*1",
@@ -275,7 +266,7 @@ func TestDeleteLink(t *testing.T) {
 			)
 
 			w := httptest.NewRecorder()
-			r, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/link?autolinkName=%s", tc.autoLinkName), nil)
+			r, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/api/v1/link?autolinkName=%s", autoLinkName), nil)
 			require.NoError(t, err)
 
 			r.Header.Set("Mattermost-Plugin-ID", "testfrom")

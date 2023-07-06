@@ -57,43 +57,71 @@ func TestAddAutolinksErr(t *testing.T) {
 }
 
 func TestDeleteAutolinks(t *testing.T) {
-	mockPluginAPI := &plugintest.API{}
+	for _, tc := range []struct {
+		name     string
+		errFound bool
+	}{
+		{
+			name: "delete the autolink",
+		},
+		{
+			name:     "got error",
+			errFound: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockPluginAPI := &plugintest.API{}
 
-	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: http.NoBody})
+			if tc.errFound {
+				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
+			} else {
+				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: http.NoBody})
+			}
 
-	client := NewClientPlugin(mockPluginAPI)
-	err := client.Delete("")
-	require.Nil(t, err)
-}
+			client := NewClientPlugin(mockPluginAPI)
+			err := client.Delete("")
 
-func TestDeleteAutolinksErr(t *testing.T) {
-	mockPluginAPI := &plugintest.API{}
-
-	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
-
-	client := NewClientPlugin(mockPluginAPI)
-	err := client.Delete("")
-	require.Error(t, err)
+			if tc.errFound {
+				require.Error(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
 }
 
 func TestGetAutolinks(t *testing.T) {
-	mockPluginAPI := &plugintest.API{}
+	for _, tc := range []struct {
+		name     string
+		errFound bool
+	}{
+		{
+			name: "get the autolink",
+		},
+		{
+			name:     "got error",
+			errFound: true,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			mockPluginAPI := &plugintest.API{}
 
-	r := ioutil.NopCloser(strings.NewReader("{}"))
+			body := ioutil.NopCloser(strings.NewReader("{}"))
 
-	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: r})
+			if tc.errFound {
+				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
+			} else {
+				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: body})
+			}
 
-	client := NewClientPlugin(mockPluginAPI)
-	_, err := client.Get("")
-	require.Nil(t, err)
-}
+			client := NewClientPlugin(mockPluginAPI)
+			_, err := client.Get("")
 
-func TestGetAutolinksErr(t *testing.T) {
-	mockPluginAPI := &plugintest.API{}
-
-	mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
-
-	client := NewClientPlugin(mockPluginAPI)
-	_, err := client.Get("")
-	require.Error(t, err)
+			if tc.errFound {
+				require.Error(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
 }
