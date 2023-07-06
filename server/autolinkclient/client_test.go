@@ -1,6 +1,7 @@
 package autolinkclient
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -59,29 +60,32 @@ func TestAddAutolinksErr(t *testing.T) {
 func TestDeleteAutolinks(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
-		errFound bool
+		setupAPI func(*plugintest.API)
+		err      error
 	}{
 		{
 			name: "delete the autolink",
+			setupAPI: func(api *plugintest.API) {
+				body := ioutil.NopCloser(strings.NewReader("{}"))
+				api.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: body})
+			},
 		},
 		{
-			name:     "got error",
-			errFound: true,
+			name: "got error",
+			setupAPI: func(api *plugintest.API) {
+				api.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
+			},
+			err: errors.New("not able to delete the autolink"),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			mockPluginAPI := &plugintest.API{}
-
-			if tc.errFound {
-				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
-			} else {
-				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: http.NoBody})
-			}
+			tc.setupAPI(mockPluginAPI)
 
 			client := NewClientPlugin(mockPluginAPI)
 			err := client.Delete("")
 
-			if tc.errFound {
+			if tc.err != nil {
 				require.Error(t, err)
 			} else {
 				require.Nil(t, err)
@@ -93,31 +97,32 @@ func TestDeleteAutolinks(t *testing.T) {
 func TestGetAutolinks(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
-		errFound bool
+		setupAPI func(*plugintest.API)
+		err      error
 	}{
 		{
 			name: "get the autolink",
+			setupAPI: func(api *plugintest.API) {
+				body := ioutil.NopCloser(strings.NewReader("{}"))
+				api.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: body})
+			},
 		},
 		{
-			name:     "got error",
-			errFound: true,
+			name: "got error",
+			setupAPI: func(api *plugintest.API) {
+				api.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
+			},
+			err: errors.New("not able to get the autolink"),
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			mockPluginAPI := &plugintest.API{}
-
-			body := ioutil.NopCloser(strings.NewReader("{}"))
-
-			if tc.errFound {
-				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(nil)
-			} else {
-				mockPluginAPI.On("PluginHTTP", mock.AnythingOfType("*http.Request")).Return(&http.Response{StatusCode: http.StatusOK, Body: body})
-			}
+			tc.setupAPI(mockPluginAPI)
 
 			client := NewClientPlugin(mockPluginAPI)
 			_, err := client.Get("")
 
-			if tc.errFound {
+			if tc.err != nil {
 				require.Error(t, err)
 			} else {
 				require.Nil(t, err)
